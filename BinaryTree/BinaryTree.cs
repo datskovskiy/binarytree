@@ -18,16 +18,6 @@ namespace BinaryTree
         public delegate void TreeEventHandler(object sender, TreeEventArgs<T> args);
 
         /// <summary>
-        /// Event that should be called when new element is added
-        /// </summary>
-        public event TreeEventHandler ElementAdded;
-
-        /// <summary>
-        /// Event that should be called when element in tree is removed
-        /// </summary>
-        public event TreeEventHandler ElementRemoved;
-
-        /// <summary>
         /// Defines how many elements tree contains
         /// </summary>
         public int Count { get; private set; }
