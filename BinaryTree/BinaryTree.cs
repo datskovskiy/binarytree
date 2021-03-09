@@ -5,8 +5,11 @@ using System.Linq;
 
 namespace BinaryTree
 {
-  public class BinaryTree<T> : IEnumerable<T>
+    public class BinaryTree<T> : IEnumerable<T>
     {
+        private readonly IComparer<T> _comparer;
+
+        public Node<T> Root { get; set; }
         /// <summary>
         /// Handles events for adding and removing elements
         /// </summary>
@@ -36,6 +39,8 @@ namespace BinaryTree
         /// <exception cref="ArgumentException">Thrown when T doesn't implement <see cref="IComparable<T>"</exception>
         public BinaryTree()
         {
+            Root = null;
+            _comparer = Comparer<T>.Default;
         }
 
         /// <summary>
@@ -44,6 +49,7 @@ namespace BinaryTree
         /// <param name="comparer"><see cref="IComparer<T>"/></param>
         public BinaryTree(IComparer<T> comparer)
         {
+            _comparer = comparer;
         }
 
         /// <summary>
@@ -53,7 +59,46 @@ namespace BinaryTree
         /// <exception cref="ArgumentNullException">Thrown if parameter was null</exception>
         public void Add(T item)
         {
-            throw new NotImplementedException();
+            if (item is null)
+                throw new ArgumentNullException(nameof(item), "cant be null.");
+
+            var nodeToInsert = new Node<T>(item, _comparer);
+
+            if (Root is null)
+                Root = nodeToInsert;
+
+            var current = Root;
+
+            while (current != null)
+            {
+                if (nodeToInsert > current)
+                {
+                    if (current.Right != null)
+                    {
+                        current = current.Right;
+                        continue;
+                    }
+
+                    current.Right = nodeToInsert;
+                    continue;
+                }
+
+                if (nodeToInsert < current)
+                {
+                    if (current.Left != null)
+                    {
+                        current = current.Left;
+                        continue;
+                    }
+
+                    current.Left = nodeToInsert;
+                    continue;
+                }
+
+                Count++;
+
+                return;
+            }
         }
 
         /// <summary>
@@ -73,7 +118,15 @@ namespace BinaryTree
         /// <exception cref="InvalidOperationException">Thrown if tree is empty</exception> 
         public T TreeMax()
         {
-            throw new NotImplementedException();
+            if (Root is null)
+                throw new InvalidOperationException("Tree cant be empty.");
+
+            var current = Root;
+
+            while (current.Right != null)
+                current = current.Right;
+
+            return current.Data;
         }
 
         /// <summary>
@@ -83,7 +136,15 @@ namespace BinaryTree
         /// <exception cref="InvalidOperationException">Thrown if tree is empty</exception>
         public T TreeMin()
         {
-            throw new NotImplementedException();
+            if (Root is null)
+                throw new InvalidOperationException("Tree cant be empty.");
+
+            var current = Root;
+
+            while (current.Left != null)
+                current = current.Left;
+
+            return current.Data;
         }
 
         /// <summary>
@@ -93,7 +154,23 @@ namespace BinaryTree
         /// <returns>True if tree contains item, false if it doesn't</returns>
         public bool Contains(T data)
         {
-            throw new NotImplementedException();
+            if (Root is null)
+                return false;
+
+            var nodeToSearch = new Node<T>(data, _comparer);
+
+            Node<T> tempNode = Root;
+            while (tempNode != null)
+            {
+                if (nodeToSearch == tempNode)
+                    return true;
+                else if (nodeToSearch < tempNode)
+                    tempNode = tempNode.Left;
+                else
+                    tempNode = tempNode.Right;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -103,7 +180,7 @@ namespace BinaryTree
         /// <returns>Sequense of elements of tree according to traverse type</returns>
         public IEnumerable<T> Traverse(TraverseType traverseType)
         {
-            throw new NotImplementedException();
+           return TraverseNode(Root, traverseType);
         }
 
         /// <summary>
@@ -113,7 +190,7 @@ namespace BinaryTree
         /// <returns>Enumerator for iterations in foreach cycle</returns>
         public IEnumerator<T> GetEnumerator()
         {
-            throw new NotImplementedException();
+            return Root.GetEnumerator();
         }
 
         /// <summary>
@@ -123,7 +200,22 @@ namespace BinaryTree
         /// <returns>Enumerator for iterations in foreach cycle</returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
-            throw new NotImplementedException();
+            return GetEnumerator();
+        }
+
+        protected IEnumerable<T> TraverseNode(Node<T> node, TraverseType method)
+        {
+            var TraverseLeft = node.Left == null ? new T[0] : TraverseNode(node.Left, method);
+            var TraverseRight = node.Right == null ? new T[0] : TraverseNode(node.Right, method);
+            var Self = new T[1] { node.Data };
+
+            return method switch
+            {
+                TraverseType.PreOrder => Self.Concat(TraverseLeft).Concat(TraverseRight),
+                TraverseType.InOrder => TraverseLeft.Concat(Self).Concat(TraverseRight),
+                TraverseType.PostOrder => TraverseLeft.Concat(TraverseRight).Concat(Self),
+                _ => throw new ArgumentException("Incorrect traverse type."),
+            };
         }
     }
 }
