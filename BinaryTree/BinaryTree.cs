@@ -18,6 +18,11 @@ namespace BinaryTree
         public delegate void TreeEventHandler(object sender, TreeEventArgs<T> args);
 
         /// <summary>
+        /// Event that should be called when new element is added
+        /// </summary>
+        public event TreeEventHandler ElementAdded;
+
+        /// <summary>
         /// Defines how many elements tree contains
         /// </summary>
         public int Count { get; private set; }
@@ -29,6 +34,13 @@ namespace BinaryTree
         /// <exception cref="ArgumentException">Thrown when T doesn't implement <see cref="IComparable<T>"</exception>
         public BinaryTree()
         {
+            bool isIComparable = typeof(T).GetInterfaces().Any(x =>
+                x.IsGenericType &&
+                x.GetGenericTypeDefinition() == typeof(IComparable<>));
+
+            if (!isIComparable)
+                throw new ArgumentException($"{typeof(T)} doesn't implement IComparable<>.");
+
             Root = null;
             _comparer = Comparer<T>.Default;
         }
@@ -51,6 +63,8 @@ namespace BinaryTree
         {
             if (item is null)
                 throw new ArgumentNullException(nameof(item), "cant be null.");
+
+            ElementAdded?.Invoke(this, new TreeEventArgs<T>(item, "Added value"));
 
             var nodeToInsert = new Node<T>(item, _comparer);
 
