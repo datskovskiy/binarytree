@@ -72,44 +72,6 @@ namespace BinaryTree
             ElementAdded?.Invoke(this, new TreeEventArgs<T>(item, "Added element"));
 
             Root = InsertNode(Root, item);
-
-            //var nodeToInsert = new Node<T>(item, _comparer);
-
-            //if (Root is null)
-            //    Root = nodeToInsert;
-
-            //var current = Root;
-
-            //while (current != null)
-            //{
-            //    if (nodeToInsert > current)
-            //    {
-            //        if (current.Right != null)
-            //        {
-            //            current = current.Right;
-            //            continue;
-            //        }
-
-            //        current.Right = nodeToInsert;
-            //        continue;
-            //    }
-
-            //    if (nodeToInsert < current)
-            //    {
-            //        if (current.Left != null)
-            //        {
-            //            current = current.Left;
-            //            continue;
-            //        }
-
-            //        current.Left = nodeToInsert;
-            //        continue;
-            //    }
-
-            //    Count++;
-
-            //    return;
-            //}
         }
 
         /// <summary>
