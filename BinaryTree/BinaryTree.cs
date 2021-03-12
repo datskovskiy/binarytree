@@ -23,6 +23,11 @@ namespace BinaryTree
         public event TreeEventHandler ElementAdded;
 
         /// <summary>
+        /// Event that should be called when element in tree is removed
+        /// </summary>
+        public event TreeEventHandler ElementRemoved;
+
+        /// <summary>
         /// Defines how many elements tree contains
         /// </summary>
         public int Count { get; private set; }
@@ -64,45 +69,47 @@ namespace BinaryTree
             if (item is null)
                 throw new ArgumentNullException(nameof(item), "cant be null.");
 
-            ElementAdded?.Invoke(this, new TreeEventArgs<T>(item, "Added value"));
+            ElementAdded?.Invoke(this, new TreeEventArgs<T>(item, "Added element"));
 
-            var nodeToInsert = new Node<T>(item, _comparer);
+            Root = InsertNode(Root, item);
 
-            if (Root is null)
-                Root = nodeToInsert;
+            //var nodeToInsert = new Node<T>(item, _comparer);
 
-            var current = Root;
+            //if (Root is null)
+            //    Root = nodeToInsert;
 
-            while (current != null)
-            {
-                if (nodeToInsert > current)
-                {
-                    if (current.Right != null)
-                    {
-                        current = current.Right;
-                        continue;
-                    }
+            //var current = Root;
 
-                    current.Right = nodeToInsert;
-                    continue;
-                }
+            //while (current != null)
+            //{
+            //    if (nodeToInsert > current)
+            //    {
+            //        if (current.Right != null)
+            //        {
+            //            current = current.Right;
+            //            continue;
+            //        }
 
-                if (nodeToInsert < current)
-                {
-                    if (current.Left != null)
-                    {
-                        current = current.Left;
-                        continue;
-                    }
+            //        current.Right = nodeToInsert;
+            //        continue;
+            //    }
 
-                    current.Left = nodeToInsert;
-                    continue;
-                }
+            //    if (nodeToInsert < current)
+            //    {
+            //        if (current.Left != null)
+            //        {
+            //            current = current.Left;
+            //            continue;
+            //        }
 
-                Count++;
+            //        current.Left = nodeToInsert;
+            //        continue;
+            //    }
 
-                return;
-            }
+            //    Count++;
+
+            //    return;
+            //}
         }
 
         /// <summary>
@@ -112,7 +119,14 @@ namespace BinaryTree
         /// <returns>True if element was deleted succesfully, false if element wasn't found in tree</returns>
         public bool Remove(T item)
         {
-            throw new NotImplementedException();
+            if (!Contains(item))
+                return false;
+
+            ElementRemoved?.Invoke(this, new TreeEventArgs<T>(item, "Deleted element"));
+
+            Root = DeleteNode(Root, item);
+
+            return Root != null;
         }
 
         /// <summary>
@@ -184,7 +198,7 @@ namespace BinaryTree
         /// <returns>Sequense of elements of tree according to traverse type</returns>
         public IEnumerable<T> Traverse(TraverseType traverseType)
         {
-           return TraverseNode(Root, traverseType);
+            return TraverseNode(Root, traverseType);
         }
 
         /// <summary>
@@ -221,5 +235,72 @@ namespace BinaryTree
                 _ => throw new ArgumentException("Incorrect traverse type."),
             };
         }
-    }
+
+        private Node<T> InsertNode(Node<T> node, T item)
+        {
+            var nodeToInsert = new Node<T>(item, _comparer);
+
+            if (node == null)
+            {
+                Count++;
+                node = nodeToInsert;
+                return node;
+            }
+
+            if (nodeToInsert < node)
+                node.Left = InsertNode(node.Left, item);
+            else if (nodeToInsert > node)
+                node.Right = InsertNode(node.Right, item);
+
+            Count++;
+
+            return node;
+        }
+
+        private Node<T> DeleteNode(Node<T> node, T item)
+        {
+            if (node == null)
+                return node;
+
+            var nodeToDelete = new Node<T>(item, _comparer);
+
+            /* Otherwise, recur down the tree */
+            if (nodeToDelete < node)
+                node.Left = DeleteNode(node.Left, item);
+            else if (nodeToDelete > node)
+                node.Right = DeleteNode(node.Right, item);
+
+            // if key is same as root's key, then This is the
+            // node to be deleted
+            else
+            {
+                Count--;
+
+                if (node.Left == null)
+                    return node.Right;
+                else if (node.Right == null)
+                    return node.Left;
+
+                node.Data = GetMinValue(node.Right);
+
+                node.Right = DeleteNode(node.Right, node.Data);
+            }
+
+            return node;
+        }
+
+        private T GetMinValue(Node<T> node)
+        {
+            var minValue = node.Data;
+
+            while (node.Left != null)
+            {
+                minValue = node.Left.Data;
+                node = node.Left;
+            }
+
+            return minValue;
+        }
+
+    }   
 }
